@@ -8,6 +8,8 @@ import { cmrGraphDb } from '../utils/cmrGraphDb'
 import { mergeParams } from '../utils/mergeParams'
 import { cmrAccessLists } from '../utils/cmrAccessLists'
 import { getAcl } from '../utils/getAcl'
+import { getGroups } from '../utils/getGroups'
+import { getGroup } from '../utils/getGroups'
 /**
  * Queries CMR GraphDB for related collections.
  * @param {String} conceptId ConceptID for the initial collection to find relationships on.
@@ -127,6 +129,25 @@ export default async (
     const { catalog_item_identity} = aclData
     console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(aclData, null, 2))
     console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(catalog_item_identity, null, 2))
+  }
+  // Get the Group data for all groups user can access
+  const { data:groupsData } = await getGroups({ headers })
+  console.log('get groups response result: ', JSON.stringify(groupsData, null, 2))
+  const groupConceptIds = []
+  for (let i = 0; i < groupsData.items.length; i+=1) {
+    groupConceptIds.push(groupsData.items[i].concept_id)
+  }
+  console.log('These are the groups concept ids', groupConceptIds)
+  let groupConceptId = groupConceptIds[0]
+  for (let i = 0; i < groupConceptIds.length; i++) {
+    groupConceptId = groupConceptIds[i]
+    console.log('Group concept_id to be parsed', groupConceptId)
+    const { data:groupData } = await getGroup({ headers, groupConceptId})
+    const { provider_id} = groupData //Get provider Id form the group data
+    console.log('Reponse from get specific group data: ', JSON.stringify(groupData, null, 2))
+    if(provider_id){ //Some groups are not provider specific
+      console.log('the provider id of a specific group: ', JSON.stringify(provider_id, null, 2))
+    }
   }
   const query = JSON.stringify({
     gremlin: `
