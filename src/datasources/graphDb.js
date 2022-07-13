@@ -6,6 +6,7 @@ import {
 
 import { cmrGraphDb } from '../utils/cmrGraphDb'
 import { mergeParams } from '../utils/mergeParams'
+import { cmrAccessLists } from '../utils/cmrAccessLists'
 
 /**
  * Queries CMR GraphDB for related collections.
@@ -102,9 +103,16 @@ export default async (
     // Default to returning all values for those relationship labels that were requested
     filters = `
       .hasLabel('${includedLabels.join("','")}')
-    `
+     `
   }
-
+  const { data:aclListData } = await cmrAccessLists({ headers })
+  console.log(aclListData)
+  const aclLocations = []
+  for (let i = 0; i < aclListData.items.length; i+=1) {
+    aclLocations.push(aclListData.items[i].location);
+  }
+  console.log('All of the ACL locations', aclLocations)
+  
   const query = JSON.stringify({
     gremlin: `
     g
