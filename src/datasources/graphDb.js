@@ -7,7 +7,7 @@ import {
 import { cmrGraphDb } from '../utils/cmrGraphDb'
 import { mergeParams } from '../utils/mergeParams'
 import { cmrAccessLists } from '../utils/cmrAccessLists'
-
+import { getAcl } from '../utils/getAcl'
 /**
  * Queries CMR GraphDB for related collections.
  * @param {String} conceptId ConceptID for the initial collection to find relationships on.
@@ -108,11 +108,26 @@ export default async (
   const { data:aclListData } = await cmrAccessLists({ headers })
   console.log(aclListData)
   const aclLocations = []
+  const userAllowedAcls = []
   for (let i = 0; i < aclListData.items.length; i+=1) {
-    aclLocations.push(aclListData.items[i].location);
+    aclLocations.push(aclListData.items[i].location)
+    userAllowedAcls.push(aclListData.items[i].concept_id)
   }
   console.log('All of the ACL locations', aclLocations)
-  
+  console.log('All of the ACL concept_ids', userAllowedAcls)
+  //For all of the ACL's return the specific ACLs
+  let aclUrl = aclLocations[0] // TODO there may need to be a conditional here if there are NO acls initalize to the first URL
+  const { data:aclData } = await getAcl({ headers, aclUrl})
+  const { result: aclResult} = aclData
+  console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(aclResult, null, 2))
+  for (let i = 0; i < aclLocations.length; i+=1) {
+    aclUrl = aclLocations[i]
+    console.log('Current acl-url', aclUrl)
+    const { data:aclData } = await getAcl({ headers, aclUrl})
+    const { catalog_item_identity} = aclData
+    console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(aclData, null, 2))
+    console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(catalog_item_identity, null, 2))
+  }
   const query = JSON.stringify({
     gremlin: `
     g
