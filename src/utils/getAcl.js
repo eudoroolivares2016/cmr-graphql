@@ -24,6 +24,7 @@ export const getAcl = ({
     'Authorization'
   ])
   console.log('This is the ACL-Url being passed into the getAcl function', aclUrl)
+  permittedHeaders['Authorization'] = 'mock-echo-system-token'
   const { 'Authorization': authorization } = permittedHeaders
   const requestConfiguration = {
     headers: permittedHeaders,

@@ -118,17 +118,17 @@ export default async (
   console.log('All of the ACL locations', aclLocations)
   console.log('All of the ACL concept_ids', userAllowedAcls)
   //For all of the ACL's return the specific ACLs
-  let aclUrl = aclLocations[0] // TODO there may need to be a conditional here if there are NO acls initalize to the first URL
-  const { data:aclData } = await getAcl({ headers, aclUrl})
-  const { result: aclResult} = aclData
+  //let aclUrl = aclLocations[0] // TODO there may need to be a conditional here if there are NO acls initalize to the first URL
+  //const { data:aclData } = await getAcl({ headers, aclUrl})
+  //const { result: aclResult} = aclData
   console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(aclResult, null, 2))
   for (let i = 0; i < aclLocations.length; i+=1) {
     aclUrl = aclLocations[i]
     console.log('Current acl-url', aclUrl)
     const { data:aclData } = await getAcl({ headers, aclUrl})
     const { catalog_item_identity} = aclData
-    console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(aclData, null, 2))
-    console.log('Reponse from the Simulated Acess control app: ', JSON.stringify(catalog_item_identity, null, 2))
+    console.log('Reponse from getAcl, all data: ', JSON.stringify(aclData, null, 2))
+    console.log('Reponse from getAcl catelog item identity: ', JSON.stringify(catalog_item_identity, null, 2))
   }
   // Get the Group data for all groups user can access
   const { data:groupsData } = await getGroups({ headers })
@@ -204,8 +204,8 @@ export default async (
   const { result } = data
 
   // Useful for debugging!
-  // console.log('GraphDB query', JSON.parse(query))
-  // console.log('GraphDB Response result: ', JSON.stringify(result, null, 2))
+   console.log('GraphDB query', JSON.parse(query))
+   console.log('GraphDB Response result: ', JSON.stringify(result, null, 2))
 
   const { data: resultData } = result
   const { '@value': dataValues } = resultData

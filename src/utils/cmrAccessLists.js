@@ -23,12 +23,15 @@ export const cmrAccessLists = ({
     'CMR-Request-Id',
     'Authorization'
   ])
-  console.log('Running the Access Control List simulated function')
+  console.log('Running cmrAccessLists to get all permitted Acls')
+  // This Authorization field is altered for local development
+  permittedHeaders['Authorization'] = 'mock-echo-system-token'
+  console.log('Header after changing it to mock echo for local dev', permittedHeaders)
   const { 'Authorization': authorization } = permittedHeaders
   const requestConfiguration = {
-    headers: headers,
+    headers: permittedHeaders,
     method: 'GET',
-    url: `https://cmr.earthdata.nasa.gov/access-control/acls/`
+    url: `http://localhost:3011/acls?identity_type=catalog_item`
   }
   // Interceptors require an instance of axios
   const instance = axios.create()
