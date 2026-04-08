@@ -643,10 +643,19 @@ export default class Concept {
   fetchUmm(searchParams, requestedKeys, providedHeaders) {
     this.logKeyRequest(requestedKeys, 'umm')
 
+    const { revisionId } = this.requestInfo
+
+    const params = pick(snakeCaseKeys(searchParams), this.getPermittedUmmSearchParams())
+
+    // Add all_revisions to params if revisionId is present and all_revisions is not set
+    if (revisionId && !params.all_revisions) {
+      params.all_revisions = true
+    }
+
     // Construct the promise that will request data from the umm endpoint
     return cmrQuery({
       conceptType: this.getConceptType(),
-      params: pick(snakeCaseKeys(searchParams), this.getPermittedUmmSearchParams()),
+      params,
       nonIndexedKeys: this.getNonIndexedKeys(),
       headers: providedHeaders,
       options: {
@@ -943,6 +952,7 @@ export default class Concept {
    * @param {Array} ummKeys Array of the keys requested in the query
    */
   async parseUmm(ummResponse, ummKeys) {
+    const { revisionId } = this.requestInfo
     // Pull out the key mappings so we can retrieve the values below
     const { ummKeyMappings } = this.requestInfo
 
@@ -961,14 +971,26 @@ export default class Concept {
     items.forEach((item, itemIndex) => {
       const normalizedItem = this.normalizeUmmItem(item)
 
+      // Filter out items that don't match the requested revisionId
+      // This is necessary because the umm endpoint returns multiple revisions
+      if (revisionId && normalizedItem.meta['revision-id'].toString() !== revisionId.toString()) {
+        return
+      }
+
       // Creates unique item keys regardless of whether or not
       // a user calls for data with similar conceptIds (as is the case with revisions)
       const itemKey = this.generateUmmItemKey(itemIndex, normalizedItem)
 
       this.setEssentialUmmValues(itemKey, normalizedItem)
 
-      this.setUmmItems(item, itemKey, ummKeys, ummKeyMappings,)
+      this.setUmmItems(item, itemKey, ummKeys, ummKeyMappings)
     })
+
+    // Update the item count if we filtered out items
+    if (revisionId) {
+      const filteredItemCount = Object.keys(this.items).length
+      this.setUmmItemCount(filteredItemCount)
+    }
   }
 
   /**
